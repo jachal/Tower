@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
     boolean gameStarted = false;
 
     int timerCounter = 0;
-    Handler timerHandler;
+    Handler timerHandler = new Handler();
     Timer timer;
     TextView timetText;
 
@@ -84,59 +84,61 @@ public class MainActivity extends AppCompatActivity {
 
             View top = owner.getChildAt(0);
 
-            if(v == top || owner.getChildCount() == 1) {
+            if ((v == top || owner.getChildCount() == 1)) {
+                if (gameStarted) {
 
-                ClipData data = ClipData.newPlainText("", "");
-                View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(v);
-                v.startDrag(data, shadowBuilder, v, 0);
-                v.setVisibility(View.INVISIBLE);
-                return true;
+                    ClipData data = ClipData.newPlainText("", "");
+                    View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(v);
+                    v.startDrag(data, shadowBuilder, v, 0);
+                    v.setVisibility(View.INVISIBLE);
+                    return true;
+                } else {
+                    return false;
+                }
             } else {
                 return false;
             }
         }
     }
 
+
     class MyDragListener implements View.OnDragListener {
-
-
 
         @Override
         public boolean onDrag(View v, DragEvent event) {
 
-            switch (event.getAction()) {
+                switch (event.getAction()) {
 
-                case DragEvent.ACTION_DRAG_STARTED:
-                    break;
+                    case DragEvent.ACTION_DRAG_STARTED:
+                        break;
 
-                case DragEvent.ACTION_DROP:
-                    View view = (View) event.getLocalState();
-                    ViewGroup owner = (ViewGroup) view.getParent();
-                    owner.removeView(view);
-                    LinearLayout container = (LinearLayout) v;
-                    container.addView(view, 0);
-                    view.setVisibility(View.VISIBLE);
-                    count();
-                    checkForWin();
+                    case DragEvent.ACTION_DROP:
+                        View view = (View) event.getLocalState();
+                        ViewGroup owner = (ViewGroup) view.getParent();
+                        owner.removeView(view);
+                        LinearLayout container = (LinearLayout) v;
+                        container.addView(view, 0);
+                        view.setVisibility(View.VISIBLE);
+                        count();
+                        checkForWin();
 
-                    break;
+                        break;
 
                     default:
                         break;
+                }
+                return true;
             }
-            return true;
-        }
     }
 
 
     private Runnable doUpdateTime = () -> {
-        timetText.setText(timerCounter);
+        timetText.setText(timerCounter + "");
         timerCounter++;
     };
 
     public void timer() {
         timer = new Timer();
-
         try {
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
@@ -165,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     gameStarted = true;
                     startStop.setText("restart");
+                    timer();
                 }
 
             }
@@ -180,6 +183,7 @@ public class MainActivity extends AppCompatActivity {
     public void checkForWin() {
         if(layoutRight.getChildAt(0) == ringOne && layoutRight.getChildAt(1) == ringTwo
                 && layoutRight.getChildAt(2) == ringThree) {
+            timer.cancel();
             Toast toast = Toast.makeText(getApplicationContext(), "Gratulerer, du klarte det!", Toast.LENGTH_LONG);
             toast.show();
 
@@ -195,9 +199,13 @@ public class MainActivity extends AppCompatActivity {
         layoutleft.addView(ringTwo);
         layoutleft.addView(ringThree);
 
-
         move_text.setText("0");
         moveCounter = 0;
+
+        timetText.setText("0");
+        timerCounter = 0;
+        timer.cancel();
+        timer.purge();
 
     }
 }
